@@ -44,18 +44,21 @@ public interface Cache {
   /**
    * @return The identifier of this cache
    */
+  // 获取ID
   String getId();
 
   /**
    * @param key Can be any object but usually it is a {@link CacheKey}
    * @param value The result of a select.
    */
+  // 添加一个缓存对象
   void putObject(Object key, Object value);
 
   /**
    * @param key The key
    * @return The object stored in the cache.
    */
+  // 根据key获取缓存对象
   Object getObject(Object key);
 
   /**
@@ -72,11 +75,13 @@ public interface Cache {
    * @param key The key
    * @return Not used
    */
+  // 移除缓存对象
   Object removeObject(Object key);
 
   /**
    * Clears this cache instance.
    */
+  // 清除缓存实例
   void clear();
 
   /**
@@ -84,6 +89,7 @@ public interface Cache {
    *
    * @return The number of elements stored in the cache (not its capacity).
    */
+  // 获取已经存储的缓存大小
   int getSize();
 
   /**
@@ -93,6 +99,7 @@ public interface Cache {
    *
    * @return A ReadWriteLock
    */
+  // 读写锁
   default ReadWriteLock getReadWriteLock() {
     return null;
   }

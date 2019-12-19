@@ -25,10 +25,12 @@ import org.apache.ibatis.reflection.ArrayUtil;
 /**
  * @author Clinton Begin
  */
+// 缓存建对象
 public class CacheKey implements Cloneable, Serializable {
 
   private static final long serialVersionUID = 1146682552656046210L;
 
+  // 空键缓存
   public static final CacheKey NULL_CACHE_KEY = new CacheKey(){
     @Override
     public void update(Object object) {

@@ -47,25 +47,41 @@ import org.apache.ibatis.reflection.property.PropertyNamer;
  *
  * @author Clinton Begin
  */
+// 反射器
 public class Reflector {
 
+  // 类
   private final Class<?> type;
+  // 可以读属性数组
   private final String[] readablePropertyNames;
+  // 可以写属性的数组
   private final String[] writablePropertyNames;
+  // 属性的set方法
   private final Map<String, Invoker> setMethods = new HashMap<>();
+  // 属性的 get 方法
   private final Map<String, Invoker> getMethods = new HashMap<>();
+  //  属性对应的 setting 方法的方法参数类型的映射
   private final Map<String, Class<?>> setTypes = new HashMap<>();
+  // //  属性对应的 getting 方法的方法参数类型的映射
   private final Map<String, Class<?>> getTypes = new HashMap<>();
+  // 默认的构造方法
   private Constructor<?> defaultConstructor;
 
+  // 不区分大小写的属性集合
   private Map<String, String> caseInsensitivePropertyMap = new HashMap<>();
 
   public Reflector(Class<?> clazz) {
+    // 设置类
     type = clazz;
+    // 为类添加默认的构造方法
     addDefaultConstructor(clazz);
+    // 为类添加get方法
     addGetMethods(clazz);
+    // 为类添加set方法
     addSetMethods(clazz);
+    // 添加属性
     addFields(clazz);
+    // 初始化 readablePropertyNames、writeablePropertyNames、caseInsensitivePropertyMap 属性
     readablePropertyNames = getMethods.keySet().toArray(new String[0]);
     writablePropertyNames = setMethods.keySet().toArray(new String[0]);
     for (String propName : readablePropertyNames) {
@@ -76,20 +92,29 @@ public class Reflector {
     }
   }
 
+  //  查找无惨的构造方法
   private void addDefaultConstructor(Class<?> clazz) {
+    // 获取所有的构造方法
     Constructor<?>[] constructors = clazz.getDeclaredConstructors();
+    // 遍历所有的构造方法，寻找无参的构造方法
     Arrays.stream(constructors).filter(constructor -> constructor.getParameterTypes().length == 0)
       .findAny().ifPresent(constructor -> this.defaultConstructor = constructor);
   }
 
+  // 初始化所有的get方法和get的类型
   private void addGetMethods(Class<?> clazz) {
     Map<String, List<Method>> conflictingGetters = new HashMap<>();
+    // 获取类的所有方法
     Method[] methods = getClassMethods(clazz);
+    // 以 get 和 is 方法名开头，说明是 getting 方法
+    // PropertyNamer.methodToProperty(m.getName()), m)  获取 属性 然后添加到conflictingGetters
     Arrays.stream(methods).filter(m -> m.getParameterTypes().length == 0 && PropertyNamer.isGetter(m.getName()))
       .forEach(m -> addMethodConflict(conflictingGetters, PropertyNamer.methodToProperty(m.getName()), m));
+    // 解决getter冲突
     resolveGetterConflicts(conflictingGetters);
   }
 
+  // 解决getter冲突
   private void resolveGetterConflicts(Map<String, List<Method>> conflictingGetters) {
     for (Entry<String, List<Method>> entry : conflictingGetters.entrySet()) {
       Method winner = null;
@@ -138,6 +163,7 @@ public class Reflector {
     Method[] methods = getClassMethods(clazz);
     Arrays.stream(methods).filter(m -> m.getParameterTypes().length == 1 && PropertyNamer.isSetter(m.getName()))
       .forEach(m -> addMethodConflict(conflictingSetters, PropertyNamer.methodToProperty(m.getName()), m));
+    // 解决冲突
     resolveSetterConflicts(conflictingSetters);
   }
 
@@ -271,34 +297,45 @@ public class Reflector {
    * @param clazz The class
    * @return An array containing all methods in this class
    */
+  // 获取类的所有方法
   private Method[] getClassMethods(Class<?> clazz) {
+    // 每个方法签名与该方法的映射
     Map<String, Method> uniqueMethods = new HashMap<>();
     Class<?> currentClass = clazz;
+    // 循环类，类的父类，类的父类的父类，直到父类为 Object
     while (currentClass != null && currentClass != Object.class) {
       addUniqueMethods(uniqueMethods, currentClass.getDeclaredMethods());
 
       // we also need to look for interface methods -
       // because the class may be abstract
+      // 记录接口中定义的方法
       Class<?>[] interfaces = currentClass.getInterfaces();
       for (Class<?> anInterface : interfaces) {
         addUniqueMethods(uniqueMethods, anInterface.getMethods());
       }
 
+      // 循环获取父类，直到父类是object
       currentClass = currentClass.getSuperclass();
     }
 
+    // 获取数据，并转换为Method 数组返回
     Collection<Method> methods = uniqueMethods.values();
 
+    // return methods.toArray(new Method[methods.size()]);
     return methods.toArray(new Method[0]);
   }
 
+  //
   private void addUniqueMethods(Map<String, Method> uniqueMethods, Method[] methods) {
     for (Method currentMethod : methods) {
+      // 忽略 Bridge 方法
       if (!currentMethod.isBridge()) {
+        // 获得方法签名
         String signature = getSignature(currentMethod);
         // check to see if the method is already known
         // if it is known, then an extended class must have
         // overridden a method
+        // 当 uniqueMethods 不存在时，进行添加
         if (!uniqueMethods.containsKey(signature)) {
           uniqueMethods.put(signature, currentMethod);
         }
@@ -306,13 +343,17 @@ public class Reflector {
     }
   }
 
+  //获得方法签名  格式: returnType#方法名:参数名1,参数名2,参数名3
   private String getSignature(Method method) {
     StringBuilder sb = new StringBuilder();
+    // 返回类型
     Class<?> returnType = method.getReturnType();
     if (returnType != null) {
       sb.append(returnType.getName()).append('#');
     }
+    //  方法名
     sb.append(method.getName());
+    // 方法参数
     Class<?>[] parameters = method.getParameterTypes();
     for (int i = 0; i < parameters.length; i++) {
       sb.append(i == 0 ? ':' : ',').append(parameters[i].getName());

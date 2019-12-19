@@ -27,34 +27,44 @@ import org.apache.ibatis.reflection.SystemMetaObject;
 /**
  * @author Clinton Begin
  */
+//
 public class UnpooledDataSourceFactory implements DataSourceFactory {
 
   private static final String DRIVER_PROPERTY_PREFIX = "driver.";
   private static final int DRIVER_PROPERTY_PREFIX_LENGTH = DRIVER_PROPERTY_PREFIX.length();
 
+  //  数据源对象
   protected DataSource dataSource;
 
   public UnpooledDataSourceFactory() {
     this.dataSource = new UnpooledDataSource();
   }
 
+  // 设计数据源的相应的属性
   @Override
   public void setProperties(Properties properties) {
     Properties driverProperties = new Properties();
+    // 创建 dataSource 对应的 MetaObject 对象
     MetaObject metaDataSource = SystemMetaObject.forObject(dataSource);
+    // 遍历数据源的属性
     for (Object key : properties.keySet()) {
       String propertyName = (String) key;
+      // 如果属性是 driver. 开头的，初始化到 driverProperties
       if (propertyName.startsWith(DRIVER_PROPERTY_PREFIX)) {
         String value = properties.getProperty(propertyName);
         driverProperties.setProperty(propertyName.substring(DRIVER_PROPERTY_PREFIX_LENGTH), value);
       } else if (metaDataSource.hasSetter(propertyName)) {
+        // 如果MetaObject有对应的seter就初始化到 MetaObject 中
         String value = (String) properties.get(propertyName);
+        //将字符串类型的转化为对象的属性类型
         Object convertedValue = convertValue(metaDataSource, propertyName, value);
         metaDataSource.setValue(propertyName, convertedValue);
       } else {
+        // 未知的数据源属性
         throw new DataSourceException("Unknown DataSource property: " + propertyName);
       }
     }
+    //  将 driverProperties 设置到 metaDataSource
     if (driverProperties.size() > 0) {
       metaDataSource.setValue("driverProperties", driverProperties);
     }
@@ -65,8 +75,10 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
     return dataSource;
   }
 
+  //将字符串类型的转化为对象的属性类型
   private Object convertValue(MetaObject metaDataSource, String propertyName, String value) {
     Object convertedValue = value;
+    // 获取 meteDataSource 对应的属性的类型
     Class<?> targetType = metaDataSource.getSetterType(propertyName);
     if (targetType == Integer.class || targetType == int.class) {
       convertedValue = Integer.valueOf(value);
@@ -75,6 +87,7 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
     } else if (targetType == Boolean.class || targetType == boolean.class) {
       convertedValue = Boolean.valueOf(value);
     }
+    // 返回转化后的类型
     return convertedValue;
   }
 

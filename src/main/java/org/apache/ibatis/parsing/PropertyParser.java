@@ -21,6 +21,7 @@ import java.util.Properties;
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
+// 动态属性解析器
 public class PropertyParser {
 
   private static final String KEY_PREFIX = "org.apache.ibatis.parsing.PropertyParser.";
@@ -50,15 +51,23 @@ public class PropertyParser {
     // Prevent Instantiation
   }
 
+  // 解析变量
   public static String parse(String string, Properties variables) {
+    // VariableTokenHandler
     VariableTokenHandler handler = new VariableTokenHandler(variables);
+    // 通用的token解析器 GenericTokenParser
     GenericTokenParser parser = new GenericTokenParser("${", "}", handler);
+    // 解析
     return parser.parse(string);
   }
 
+  // 静态内部类
   private static class VariableTokenHandler implements TokenHandler {
+    // 变量 Properties
     private final Properties variables;
+    // 是否开启默认值功能
     private final boolean enableDefaultValue;
+    // 默认的分隔符
     private final String defaultValueSeparator;
 
     private VariableTokenHandler(Properties variables) {
@@ -71,11 +80,14 @@ public class PropertyParser {
       return (variables == null) ? defaultValue : variables.getProperty(key, defaultValue);
     }
 
+    //   处理token
     @Override
     public String handleToken(String content) {
       if (variables != null) {
         String key = content;
+        // 是否开启了默认值
         if (enableDefaultValue) {
+          // 寻找默认值
           final int separatorIndex = content.indexOf(defaultValueSeparator);
           String defaultValue = null;
           if (separatorIndex >= 0) {
@@ -83,13 +95,16 @@ public class PropertyParser {
             defaultValue = content.substring(separatorIndex + defaultValueSeparator.length());
           }
           if (defaultValue != null) {
+            // 默认值不为空，就直接替换
             return variables.getProperty(key, defaultValue);
           }
         }
+        // 没有默认值，直接替换
         if (variables.containsKey(key)) {
           return variables.getProperty(key);
         }
       }
+      // 没有 variables ，直接返回
       return "${" + content + "}";
     }
   }

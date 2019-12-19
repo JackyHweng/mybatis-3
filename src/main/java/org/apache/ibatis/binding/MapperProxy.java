@@ -31,6 +31,7 @@ import org.apache.ibatis.session.SqlSession;
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
+// 实例 InvocationHandler的代理对象
 public class MapperProxy<T> implements InvocationHandler, Serializable {
 
   private static final long serialVersionUID = -6424540398559729838L;
@@ -38,8 +39,11 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
       | MethodHandles.Lookup.PACKAGE | MethodHandles.Lookup.PUBLIC;
   private static final Constructor<Lookup> lookupConstructor;
   private static final Method privateLookupInMethod;
+  // sqlSession 对象
   private final SqlSession sqlSession;
+  // Mapper 接口
   private final Class<T> mapperInterface;
+  // 方法 和  MapperMethod 的映射
   private final Map<Method, MapperMethod> methodCache;
 
   public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface, Map<Method, MapperMethod> methodCache) {
@@ -74,12 +78,15 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
     lookupConstructor = lookup;
   }
 
+  // 代理的invoke方法， 包含代理的对象， 方法， 方法的参数
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
+      //  如果这个类是Object method.getDeclaringClass() 获取的这个类的
       if (Object.class.equals(method.getDeclaringClass())) {
         return method.invoke(this, args);
       } else if (method.isDefault()) {
+        // 如果是默认方法
         if (privateLookupInMethod == null) {
           return invokeDefaultMethodJava8(proxy, method, args);
         } else {
@@ -89,7 +96,10 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
     } catch (Throwable t) {
       throw ExceptionUtil.unwrapThrowable(t);
     }
+    //如果都不是以上的情况
+    // 把Method缓存到  methodCache , 并返回MapperMethod对象
     final MapperMethod mapperMethod = cachedMapperMethod(method);
+    // 执行MapperMethod
     return mapperMethod.execute(sqlSession, args);
   }
 

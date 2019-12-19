@@ -31,8 +31,10 @@ import org.apache.ibatis.io.Resources;
 /**
  * @author Clinton Begin
  */
+// 支持序列化的缓存
 public class SerializedCache implements Cache {
 
+  // 装饰的序列化的缓存
   private final Cache delegate;
 
   public SerializedCache(Cache delegate) {
@@ -84,6 +86,7 @@ public class SerializedCache implements Cache {
     return delegate.equals(obj);
   }
 
+  //序列化
   private byte[] serialize(Serializable value) {
     try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
          ObjectOutputStream oos = new ObjectOutputStream(bos)) {
@@ -95,6 +98,7 @@ public class SerializedCache implements Cache {
     }
   }
 
+  // 反序列化
   private Serializable deserialize(byte[] value) {
     Serializable result;
     try (ByteArrayInputStream bis = new ByteArrayInputStream(value);
@@ -112,6 +116,7 @@ public class SerializedCache implements Cache {
       super(in);
     }
 
+    //  解析类
     @Override
     protected Class<?> resolveClass(ObjectStreamClass desc) throws ClassNotFoundException {
       return Resources.classForName(desc.getName());

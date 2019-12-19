@@ -52,6 +52,7 @@ import org.apache.ibatis.type.TypeHandler;
 /**
  * @author Clinton Begin
  */
+//  这里有什么用？
 public class MapperBuilderAssistant extends BaseBuilder {
 
   private String currentNamespace;

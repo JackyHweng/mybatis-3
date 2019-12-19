@@ -28,6 +28,7 @@ import org.apache.ibatis.cache.Cache;
  *
  * @author Clinton Begin
  */
+// SoftCache 强引用缓存
 public class SoftCache implements Cache {
   private final Deque<Object> hardLinksToAvoidGarbageCollection;
   private final ReferenceQueue<Object> queueOfGarbageCollectedEntries;

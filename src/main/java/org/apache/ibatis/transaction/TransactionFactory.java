@@ -33,6 +33,7 @@ public interface TransactionFactory {
    * Sets transaction factory custom properties.
    * @param props
    */
+  // 设置工厂的属性
   default void setProperties(Properties props) {
     // NOP
   }
@@ -43,6 +44,7 @@ public interface TransactionFactory {
    * @return Transaction
    * @since 3.1.0
    */
+  // 创建 Transaction 事务
   Transaction newTransaction(Connection conn);
 
   /**
@@ -53,6 +55,7 @@ public interface TransactionFactory {
    * @return Transaction
    * @since 3.1.0
    */
+  // 创建 Transaction 事务
   Transaction newTransaction(DataSource dataSource, TransactionIsolationLevel level, boolean autoCommit);
 
 }

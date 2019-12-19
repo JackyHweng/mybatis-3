@@ -22,14 +22,19 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Clinton Begin
  */
+// 定时清理的缓存
 public class ScheduledCache implements Cache {
 
+  // 委托的缓存容器
   private final Cache delegate;
+  // 清理的时间间隔
   protected long clearInterval;
+  // 上一次请求的时间戳
   protected long lastClear;
 
   public ScheduledCache(Cache delegate) {
     this.delegate = delegate;
+    // 默认清除时间是一个小时
     this.clearInterval = TimeUnit.HOURS.toMillis(1);
     this.lastClear = System.currentTimeMillis();
   }
@@ -82,8 +87,10 @@ public class ScheduledCache implements Cache {
     return delegate.equals(obj);
   }
 
+  // 这个定时并不是真的定时，是在每次操作缓存的时候判断在当前时间点是否可以清除
   private boolean clearWhenStale() {
     if (System.currentTimeMillis() - lastClear > clearInterval) {
+      // 清除
       clear();
       return true;
     }

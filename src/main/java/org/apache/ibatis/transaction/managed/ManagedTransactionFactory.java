@@ -31,12 +31,15 @@ import org.apache.ibatis.transaction.TransactionFactory;
  *
  * @see ManagedTransaction
  */
+// 管理事务工厂
 public class ManagedTransactionFactory implements TransactionFactory {
 
+  // 是否关闭连接
   private boolean closeConnection = true;
 
   @Override
   public void setProperties(Properties props) {
+    // 设置属性
     if (props != null) {
       String closeConnectionProperty = props.getProperty("closeConnection");
       if (closeConnectionProperty != null) {
@@ -45,6 +48,7 @@ public class ManagedTransactionFactory implements TransactionFactory {
     }
   }
 
+  // 返回 ManagedTransaction
   @Override
   public Transaction newTransaction(Connection conn) {
     return new ManagedTransaction(conn, closeConnection);

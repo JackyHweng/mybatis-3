@@ -158,12 +158,16 @@ public class Configuration {
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
   protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<>("Key Generators collection");
 
+  // 已经加载的资源文件
   protected final Set<String> loadedResources = new HashSet<>();
   protected final Map<String, XNode> sqlFragments = new StrictMap<>("XML fragments parsed from previous mappers");
 
   protected final Collection<XMLStatementBuilder> incompleteStatements = new LinkedList<>();
+  // 不兼容的 CacheRefs
   protected final Collection<CacheRefResolver> incompleteCacheRefs = new LinkedList<>();
+  // 不兼容的 ResultMap
   protected final Collection<ResultMapResolver> incompleteResultMaps = new LinkedList<>();
+  // 不兼容的 Method
   protected final Collection<MethodResolver> incompleteMethods = new LinkedList<>();
 
   /*

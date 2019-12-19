@@ -18,10 +18,15 @@ package org.apache.ibatis.parsing;
 /**
  * @author Clinton Begin
  */
+// 通用的token解析器
 public class GenericTokenParser {
 
+  //开始token
   private final String openToken;
+  // 结束的token
   private final String closeToken;
+
+  // token 解析处理
   private final TokenHandler handler;
 
   public GenericTokenParser(String openToken, String closeToken, TokenHandler handler) {

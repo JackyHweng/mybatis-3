@@ -44,12 +44,18 @@ import org.xml.sax.SAXParseException;
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
+// 用于解析xml 文件的
 public class XPathParser {
 
+  // xml document 对象
   private final Document document;
+  // 是否验证
   private boolean validation;
+  // xml  实体解析器
   private EntityResolver entityResolver;
+  //  变量
   private Properties variables;
+  // Java Xpath 对象
   private XPath xpath;
 
   public XPathParser(String xml) {
@@ -127,6 +133,7 @@ public class XPathParser {
     this.document = createDocument(new InputSource(inputStream));
   }
 
+
   public XPathParser(Document document, boolean validation, Properties variables, EntityResolver entityResolver) {
     commonConstructor(validation, variables, entityResolver);
     this.document = document;
@@ -141,7 +148,9 @@ public class XPathParser {
   }
 
   public String evalString(Object root, String expression) {
+    // 获取这个结点的String类型的值
     String result = (String) evaluate(expression, root, XPathConstants.STRING);
+    // 解析，动态替换变量
     result = PropertyParser.parse(result, variables);
     return result;
   }
@@ -194,6 +203,9 @@ public class XPathParser {
     return (Double) evaluate(expression, root, XPathConstants.NUMBER);
   }
 
+  // 以下获取Node类型的方法
+
+
   public List<XNode> evalNodes(String expression) {
     return evalNodes(document, expression);
   }
@@ -219,6 +231,15 @@ public class XPathParser {
     return new XNode(this, node, variables);
   }
 
+
+
+  /**
+   *  获得指定元素或节点的值
+   * @param expression 表达式
+   * @param root 指定的根结点
+   * @param returnType 返回类型
+   * @return
+   */
   private Object evaluate(String expression, Object root, QName returnType) {
     try {
       return xpath.evaluate(expression, root, returnType);
@@ -227,9 +248,11 @@ public class XPathParser {
     }
   }
 
+  // 创建 documentt 对象  XML 文件解析成 Document 对象
   private Document createDocument(InputSource inputSource) {
     // important: this must only be called AFTER common constructor
     try {
+      // 创建 DocumentBuilderFactory 对象
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
       factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
       factory.setValidating(validation);
@@ -240,8 +263,11 @@ public class XPathParser {
       factory.setCoalescing(false);
       factory.setExpandEntityReferences(true);
 
+      // 创建 DocumentBuilder 对象
       DocumentBuilder builder = factory.newDocumentBuilder();
+      // 设置 实体解析器
       builder.setEntityResolver(entityResolver);
+      // 设置错误处理
       builder.setErrorHandler(new ErrorHandler() {
         @Override
         public void error(SAXParseException exception) throws SAXException {
@@ -258,6 +284,8 @@ public class XPathParser {
           // NOP
         }
       });
+
+      // 解析 xml文件，参数为xml的输入流
       return builder.parse(inputSource);
     } catch (Exception e) {
       throw new BuilderException("Error creating document instance.  Cause: " + e, e);
@@ -268,6 +296,7 @@ public class XPathParser {
     this.validation = validation;
     this.entityResolver = entityResolver;
     this.variables = variables;
+    // 创建 XPathFactory 对象
     XPathFactory factory = XPathFactory.newInstance();
     this.xpath = factory.newXPath();
   }

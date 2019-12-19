@@ -32,6 +32,7 @@ import org.apache.ibatis.transaction.TransactionFactory;
  */
 public class JdbcTransactionFactory implements TransactionFactory {
 
+  // 创建 JdbcTransaction 对象
   @Override
   public Transaction newTransaction(Connection conn) {
     return new JdbcTransaction(conn);

@@ -33,10 +33,15 @@ import org.apache.ibatis.cache.CacheException;
  * @author Eduardo Macarron
  *
  */
+// 阻塞的缓存
 public class BlockingCache implements Cache {
 
+  // 超时时间
   private long timeout;
+
+  // 装饰的缓存对象
   private final Cache delegate;
+  // 缓存键与重入锁的Map
   private final ConcurrentHashMap<Object, ReentrantLock> locks;
 
   public BlockingCache(Cache delegate) {
@@ -54,20 +59,28 @@ public class BlockingCache implements Cache {
     return delegate.getSize();
   }
 
+  // 为什么这里设置缓存不加锁，但是设置完了会释放锁?
+  // 为什么先不加锁？因为防止多个线程读到key不存在的情况发生
   @Override
   public void putObject(Object key, Object value) {
     try {
+      // 添加缓存
       delegate.putObject(key, value);
     } finally {
+      // 释放锁
       releaseLock(key);
     }
   }
 
+  // 这里获取缓存的时候，先加锁，如果获取不到，就不会释放锁（当这个key还没有设置进来的是，别人读取这个key都必须等待, 这样多个线程就不会重复添加缓存了！！）
   @Override
   public Object getObject(Object key) {
+    // 先获取锁
     acquireLock(key);
+    // 获取对象
     Object value = delegate.getObject(key);
     if (value != null) {
+      // 释放锁
       releaseLock(key);
     }
     return value;
@@ -76,6 +89,7 @@ public class BlockingCache implements Cache {
   @Override
   public Object removeObject(Object key) {
     // despite of its name, this method is called only to release locks
+    // 释放锁
     releaseLock(key);
     return null;
   }
@@ -85,10 +99,12 @@ public class BlockingCache implements Cache {
     delegate.clear();
   }
 
+  // 获取锁，如果不存在就创建一个, 并添加到locks中
   private ReentrantLock getLockForKey(Object key) {
     return locks.computeIfAbsent(key, k -> new ReentrantLock());
   }
 
+  // 获取锁逻辑
   private void acquireLock(Object key) {
     Lock lock = getLockForKey(key);
     if (timeout > 0) {
@@ -105,8 +121,10 @@ public class BlockingCache implements Cache {
     }
   }
 
+  // 释放锁逻辑
   private void releaseLock(Object key) {
     ReentrantLock lock = locks.get(key);
+    // 当前锁如果被当前线程持有，那么就释放
     if (lock.isHeldByCurrentThread()) {
       lock.unlock();
     }

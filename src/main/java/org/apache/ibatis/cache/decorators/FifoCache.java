@@ -25,10 +25,14 @@ import org.apache.ibatis.cache.Cache;
  *
  * @author Clinton Begin
  */
+// 基于先进先出的淘汰机制缓存
 public class FifoCache implements Cache {
 
+  // 装饰的缓存容器
   private final Cache delegate;
+  // 双端队列 其实就是未了记录缓存添加的顺序，以方便删除
   private final Deque<Object> keyList;
+  // 当前缓存的大小
   private int size;
 
   public FifoCache(Cache delegate) {
@@ -69,10 +73,13 @@ public class FifoCache implements Cache {
 
   @Override
   public void clear() {
+    //清除缓存容器
     delegate.clear();
+    // 清除双端队列的元素
     keyList.clear();
   }
 
+  // 即当前key入队列，如果当前的大小大于设置的大小，弹出最上面的key，并从缓存中删除
   private void cycleKeyList(Object key) {
     keyList.addLast(key);
     if (keyList.size() > size) {

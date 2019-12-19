@@ -21,10 +21,12 @@ import java.util.List;
 /**
  * @author Clinton Begin
  */
+// 池化状态对象
 public class PoolState {
 
   protected PooledDataSource dataSource;
 
+  // 存放的是空闲的连接对象
   protected final List<PooledConnection> idleConnections = new ArrayList<>();
   protected final List<PooledConnection> activeConnections = new ArrayList<>();
   protected long requestCount = 0;

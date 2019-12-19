@@ -27,11 +27,14 @@ import javax.sql.DataSource;
  *
  * @author Eduardo Macarron
  */
+// 数据库标识提供器接口
 public interface DatabaseIdProvider {
 
+  // 设置属性
   default void setProperties(Properties p) {
     // NOP
   }
 
+  // 数据库ID
   String getDatabaseId(DataSource dataSource) throws SQLException;
 }

@@ -36,22 +36,35 @@ import org.apache.ibatis.logging.LogFactory;
  *
  * @author Clinton Begin
  */
+// 池化的数据源
 public class PooledDataSource implements DataSource {
 
   private static final Log log = LogFactory.getLog(PooledDataSource.class);
 
+  // 用于记录池化状态
   private final PoolState state = new PoolState(this);
 
+  // 非池化数据库对象
   private final UnpooledDataSource dataSource;
 
   // OPTIONAL CONFIGURATION FIELDS
+  // 可以配置的关键属性
+
+  // 线程池的最大活跃连接数
   protected int poolMaximumActiveConnections = 10;
+  // 线程池中最大的空闲的线程数量
   protected int poolMaximumIdleConnections = 5;
+  // 池中连接的检出时间
   protected int poolMaximumCheckoutTime = 20000;
+  // 连接最大等待时间，如果连接连接时间过程，将打印日志再获取另一个连接
   protected int poolTimeToWait = 20000;
+  // 容忍坏的连接数
   protected int poolMaximumLocalBadConnectionTolerance = 3;
+  //发送到数据库的侦测查询
   protected String poolPingQuery = "NO PING QUERY SET";
+  // 是否开启侦测查询
   protected boolean poolPingEnabled;
+  // 侦测频率
   protected int poolPingConnectionsNotUsedFor;
 
   private int expectedConnectionTypeCode;
@@ -151,7 +164,7 @@ public class PooledDataSource implements DataSource {
 
   /**
    * Sets the default network timeout value to wait for the database operation to complete. See {@link Connection#setNetworkTimeout(java.util.concurrent.Executor, int)}
-   * 
+   *
    * @param milliseconds
    *          The time in milliseconds to wait for the database operation to complete.
    * @since 3.5.2
@@ -401,15 +414,18 @@ public class PooledDataSource implements DataSource {
     }
   }
 
+  // 获取一个池化的连接对象
   private PooledConnection popConnection(String username, String password) throws SQLException {
     boolean countedWait = false;
     PooledConnection conn = null;
     long t = System.currentTimeMillis();
     int localBadConnectionCount = 0;
 
+    // 开始循环，获取可以用的连接
     while (conn == null) {
       synchronized (state) {
         if (!state.idleConnections.isEmpty()) {
+          // 空闲连接非空，说明有可用的连接，直接弹出
           // Pool has available connection
           conn = state.idleConnections.remove(0);
           if (log.isDebugEnabled()) {
@@ -417,14 +433,18 @@ public class PooledDataSource implements DataSource {
           }
         } else {
           // Pool does not have available connection
+          // 如果空闲连接没有了，连接的活跃数还没有超过设置的最大连接数
           if (state.activeConnections.size() < poolMaximumActiveConnections) {
             // Can create new connection
+            // 创建换一个新的连接
             conn = new PooledConnection(dataSource.getConnection(), this);
             if (log.isDebugEnabled()) {
               log.debug("Created connection " + conn.getRealHashCode() + ".");
             }
           } else {
             // Cannot create new connection
+            // 空闲连接没有了，又超过了最大活跃线程数
+            // 只能获取活跃线程池中的连接了
             PooledConnection oldestActiveConnection = state.activeConnections.get(0);
             long longestCheckoutTime = oldestActiveConnection.getCheckoutTime();
             if (longestCheckoutTime > poolMaximumCheckoutTime) {
