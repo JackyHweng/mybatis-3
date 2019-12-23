@@ -31,13 +31,16 @@ import org.apache.ibatis.session.Configuration;
 /**
  * @author Eduardo Macarron
  */
+// xml 语言驱动实现类
 public class XMLLanguageDriver implements LanguageDriver {
 
+  // DefaultParameterHandler 创建
   @Override
   public ParameterHandler createParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
     return new DefaultParameterHandler(mappedStatement, parameterObject, boundSql);
   }
 
+  // 创建 SqlSource , 这里返回的是 XmlScriptBuilder 构建对象
   @Override
   public SqlSource createSqlSource(Configuration configuration, XNode script, Class<?> parameterType) {
     XMLScriptBuilder builder = new XMLScriptBuilder(configuration, script, parameterType);
@@ -47,16 +50,23 @@ public class XMLLanguageDriver implements LanguageDriver {
   @Override
   public SqlSource createSqlSource(Configuration configuration, String script, Class<?> parameterType) {
     // issue #3
+    // 如果是<sript> 开头的 使用XMl配置的方式，使用动态Sql
     if (script.startsWith("<script>")) {
+      // 创建 XPathParser 对象解析出 <script/> 结点
       XPathParser parser = new XPathParser(script, false, configuration.getVariables(), new XMLMapperEntityResolver());
+      // 创建SqlSource对象
       return createSqlSource(configuration, parser.evalNode("/script"), parameterType);
     } else {
       // issue #127
+      // 变量替换
       script = PropertyParser.parse(script, configuration.getVariables());
+      // 创建 TextSqlNode 对象
       TextSqlNode textSqlNode = new TextSqlNode(script);
       if (textSqlNode.isDynamic()) {
+        // 如果是动态的 Sql 创建 DynamicSqlSource
         return new DynamicSqlSource(configuration, textSqlNode);
       } else {
+        // 否则就是非动态sql 则创建 RawSqlSource 对象
         return new RawSqlSource(configuration, script, parameterType);
       }
     }

@@ -27,12 +27,15 @@ public class ForEachSqlNode implements SqlNode {
   public static final String ITEM_PREFIX = "__frch_";
 
   private final ExpressionEvaluator evaluator;
+  // 集合的表达式
   private final String collectionExpression;
   private final SqlNode contents;
   private final String open;
   private final String close;
   private final String separator;
+  // 集合
   private final String item;
+  // 索引变量
   private final String index;
   private final Configuration configuration;
 
@@ -50,23 +53,30 @@ public class ForEachSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    // 获取遍历的集合 Iterable 对象 用于遍历
     Map<String, Object> bindings = context.getBindings();
     final Iterable<?> iterable = evaluator.evaluateIterable(collectionExpression, bindings);
     if (!iterable.iterator().hasNext()) {
       return true;
     }
     boolean first = true;
+    // 添加 open 到Sql中
     applyOpen(context);
     int i = 0;
+    //
     for (Object o : iterable) {
+      // 记录旧的 Context 对象
       DynamicContext oldContext = context;
+      // 生成新的 context 对象
       if (first || separator == null) {
         context = new PrefixedContext(context, "");
       } else {
         context = new PrefixedContext(context, separator);
       }
+      // 生成唯一id
       int uniqueNumber = context.getUniqueNumber();
       // Issue #709
+      // 绑定到 context
       if (o instanceof Map.Entry) {
         @SuppressWarnings("unchecked")
         Map.Entry<Object, Object> mapEntry = (Map.Entry<Object, Object>) o;
@@ -76,14 +86,19 @@ public class ForEachSqlNode implements SqlNode {
         applyIndex(context, i, uniqueNumber);
         applyItem(context, o, uniqueNumber);
       }
+      // 执行应用
       contents.apply(new FilteredDynamicContext(configuration, context, index, item, uniqueNumber));
+      // 判断 prefix 是否插入
       if (first) {
         first = !((PrefixedContext) context).isPrefixApplied();
       }
+      // 恢复旧的context对象
       context = oldContext;
       i++;
     }
+    // 添加close到Sql中
     applyClose(context);
+    // 移除 item 和 index 的绑定
     context.getBindings().remove(item);
     context.getBindings().remove(index);
     return true;
@@ -121,8 +136,11 @@ public class ForEachSqlNode implements SqlNode {
 
   private static class FilteredDynamicContext extends DynamicContext {
     private final DynamicContext delegate;
+    // 唯一标识 {@link DynamicContext#getUniqueNumber()}
     private final int index;
+    //  索引变量 {@link ForEachSqlNode#index}
     private final String itemIndex;
+    //  集合项 {@link ForEachSqlNode#item}
     private final String item;
 
     public FilteredDynamicContext(Configuration configuration,DynamicContext delegate, String itemIndex, String item, int i) {
@@ -148,16 +166,21 @@ public class ForEachSqlNode implements SqlNode {
       return delegate.getSql();
     }
 
+    // 追加 sql 逻辑
     @Override
     public void appendSql(String sql) {
       GenericTokenParser parser = new GenericTokenParser("#{", "}", content -> {
+        // 将对 item 的访问，替换成 itemizeItem(item, index)
         String newContent = content.replaceFirst("^\\s*" + item + "(?![^.,:\\s])", itemizeItem(item, index));
         if (itemIndex != null && newContent.equals(content)) {
+          // 将对 itemIndex 的访问，替换成 itemizeItem(itemIndex, index)
           newContent = content.replaceFirst("^\\s*" + itemIndex + "(?![^.,:\\s])", itemizeItem(itemIndex, index));
         }
+        //  返回
         return "#{" + newContent + "}";
       });
 
+      // 追加 sql
       delegate.appendSql(parser.parse(sql));
     }
 
@@ -169,6 +192,7 @@ public class ForEachSqlNode implements SqlNode {
   }
 
 
+  // 内部类 支持添加 prefix 标签
   private class PrefixedContext extends DynamicContext {
     private final DynamicContext delegate;
     private final String prefix;
@@ -195,8 +219,11 @@ public class ForEachSqlNode implements SqlNode {
       delegate.bind(name, value);
     }
 
+    // 追加
     @Override
     public void appendSql(String sql) {
+      // 如果未应用 prefix ，并且，方法参数 sql 非空
+      // 则添加 prefix 到 delegate 中，并标记 prefixApplied 为 true ，表示已经应用
       if (!prefixApplied && sql != null && sql.trim().length() > 0) {
         delegate.appendSql(prefix);
         prefixApplied = true;

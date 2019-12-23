@@ -84,6 +84,7 @@ class BindingTest {
     try (SqlSession session = sqlSessionFactory.openSession()) {
       BoundBlogMapper mapper = session.getMapper(BoundBlogMapper.class);
       Blog b = mapper.selectBlogWithPostsUsingSubSelect(1);
+      System.out.println(b);
       assertEquals(1, b.getId());
       assertNotNull(b.getAuthor());
       assertEquals(101, b.getAuthor().getId());
@@ -92,6 +93,19 @@ class BindingTest {
       assertEquals(2, b.getPosts().size());
     }
   }
+
+  @Test
+  void shoudSelectBlogWithIds(){
+    try (SqlSession session = sqlSessionFactory.openSession()) {
+      BoundBlogMapper mapper = session.getMapper(BoundBlogMapper.class);
+      List<Integer> ids = Collections.EMPTY_LIST;
+      ids.add(1);
+      List<Blog> blogList = mapper.getBlogList(ids);
+      System.out.println(blogList.size());
+
+    }
+  }
+
 
   @Test
   void shouldFindPostsInList() {

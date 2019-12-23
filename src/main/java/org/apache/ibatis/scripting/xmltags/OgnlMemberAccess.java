@@ -36,6 +36,7 @@ import org.apache.ibatis.reflection.Reflector;
  */
 class OgnlMemberAccess implements MemberAccess {
 
+  // 是否可以控制修改成员的访问权限
   private final boolean canControlMemberAccessible;
 
   OgnlMemberAccess() {
@@ -45,9 +46,12 @@ class OgnlMemberAccess implements MemberAccess {
   @Override
   public Object setup(Map context, Object target, Member member, String propertyName) {
     Object result = null;
+    // 判断是否可以修改
     if (isAccessible(context, target, member, propertyName)) {
       AccessibleObject accessible = (AccessibleObject) member;
+      // 不可访问
       if (!accessible.isAccessible()) {
+        // 设置可以访问并且返回 false
         result = Boolean.FALSE;
         accessible.setAccessible(true);
       }

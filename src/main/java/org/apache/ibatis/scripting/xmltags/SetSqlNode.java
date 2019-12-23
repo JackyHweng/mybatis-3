@@ -23,6 +23,7 @@ import org.apache.ibatis.session.Configuration;
 /**
  * @author Clinton Begin
  */
+// SetHandler 和 TrimHandler
 public class SetSqlNode extends TrimSqlNode {
 
   private static final List<String> COMMA = Collections.singletonList(",");

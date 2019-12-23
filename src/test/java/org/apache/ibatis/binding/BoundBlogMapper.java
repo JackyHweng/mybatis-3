@@ -35,6 +35,9 @@ public interface BoundBlogMapper {
 
   Blog selectBlogWithPostsUsingSubSelect(int id);
 
+
+  List<Blog> getBlogList(List<Integer> ids);
+
   //======================================================
 
   int selectRandom();

@@ -27,6 +27,7 @@ import org.apache.ibatis.io.Resources;
  *
  * @see <a href='https://github.com/mybatis/mybatis-3/issues/161'>Issue 161</a>
  */
+// OGNL 类解析器
 public class OgnlClassResolver extends DefaultClassResolver {
 
   @Override

@@ -79,6 +79,14 @@
     select * from Blog where id = #{id}
   </select>
 
+  <select id="getBlogList" parameterType="List" resultType="List">
+    SELECT id FROM Blog
+    WHERE id IN
+    <foreach collection="ids" index="idx" item="item" open="("  close=")" separator=",">
+      #{item}
+    </foreach>
+  </select>
+
   <select id="selectAuthorWithInlineParams"
             parameterType="int"
             resultType="org.apache.ibatis.domain.blog.Author">

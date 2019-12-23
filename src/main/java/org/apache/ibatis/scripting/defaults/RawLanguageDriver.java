@@ -29,11 +29,14 @@ import org.apache.ibatis.session.Configuration;
  * @since 3.2.0
  * @author Eduardo Macarron
  */
+// RawLanguageDriver 确保创建的Sqlsource 是 RawSource类
 public class RawLanguageDriver extends XMLLanguageDriver {
 
   @Override
   public SqlSource createSqlSource(Configuration configuration, XNode script, Class<?> parameterType) {
+    // 调用父类的创建SqlSource 方法
     SqlSource source = super.createSqlSource(configuration, script, parameterType);
+    // 校验创建的是 RawSqlSource 对象
     checkIsNotDynamic(source);
     return source;
   }
@@ -45,6 +48,7 @@ public class RawLanguageDriver extends XMLLanguageDriver {
     return source;
   }
 
+  // 判断SqlSource 是不是 RawSqlSource 对象
   private void checkIsNotDynamic(SqlSource source) {
     if (!RawSqlSource.class.equals(source.getClass())) {
       throw new BuilderException("Dynamic content is not allowed when using RAW language");

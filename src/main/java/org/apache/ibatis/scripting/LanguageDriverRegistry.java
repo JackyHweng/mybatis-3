@@ -21,18 +21,24 @@ import java.util.Map;
 /**
  * @author Frank D. Martinez [mnesarco]
  */
+// LanguageDriver 注册表
 public class LanguageDriverRegistry {
 
+  // LanguageDriver 映射
   private final Map<Class<? extends LanguageDriver>, LanguageDriver> LANGUAGE_DRIVER_MAP = new HashMap<>();
 
+  // 默认的是LanguagedDriver
   private Class<? extends LanguageDriver> defaultDriverClass;
 
+  // 注册 参数为 LanguageDriver 类型
   public void register(Class<? extends LanguageDriver> cls) {
     if (cls == null) {
       throw new IllegalArgumentException("null is not a valid Language Driver");
     }
+    // 如果不存在就创建
     LANGUAGE_DRIVER_MAP.computeIfAbsent(cls, k -> {
       try {
+        // 实例化
         return k.getDeclaredConstructor().newInstance();
       } catch (Exception ex) {
         throw new ScriptingException("Failed to load language driver for " + cls.getName(), ex);
@@ -40,6 +46,7 @@ public class LanguageDriverRegistry {
     });
   }
 
+  // 注册 参数为 LanguageDriver 实例
   public void register(LanguageDriver instance) {
     if (instance == null) {
       throw new IllegalArgumentException("null is not a valid Language Driver");

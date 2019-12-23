@@ -18,6 +18,9 @@ package org.apache.ibatis.scripting.xmltags;
 /**
  * @author Clinton Begin
  */
+// 每一个XmlNode 都会解析成 SqlNode 对象
 public interface SqlNode {
+  // 当前SqlNode 是否应用成功
+  // 为什么这里是返回ture，因为值都存放到了 DynamicContent 
   boolean apply(DynamicContext context);
 }

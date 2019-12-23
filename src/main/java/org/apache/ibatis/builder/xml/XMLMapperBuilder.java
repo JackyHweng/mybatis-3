@@ -140,6 +140,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  // 构建 statement 结点
   private void buildStatementFromContext(List<XNode> list) {
     if (configuration.getDatabaseId() != null) {
       buildStatementFromContext(list, configuration.getDatabaseId());
@@ -148,11 +149,14 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   private void buildStatementFromContext(List<XNode> list, String requiredDatabaseId) {
+    // 开始遍历  insert update select delete 结点
     for (XNode context : list) {
+      // 构建 XMLStatementBuilder, 解析
       final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, builderAssistant, context, requiredDatabaseId);
       try {
         statementParser.parseStatementNode();
       } catch (IncompleteElementException e) {
+        // 解析失败，添加到 Configuration 不兼容的statement
         configuration.addIncompleteStatement(statementParser);
       }
     }
