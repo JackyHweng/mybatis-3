@@ -40,8 +40,11 @@ public class DefaultParameterHandler implements ParameterHandler {
 
   private final TypeHandlerRegistry typeHandlerRegistry;
 
+  // MappedStatement 对象
   private final MappedStatement mappedStatement;
+  // 参数对象
   private final Object parameterObject;
+  // BoundSql 对象
   private final BoundSql boundSql;
   private final Configuration configuration;
 
@@ -61,10 +64,14 @@ public class DefaultParameterHandler implements ParameterHandler {
   @Override
   public void setParameters(PreparedStatement ps) {
     ErrorContext.instance().activity("setting parameters").object(mappedStatement.getParameterMap().getId());
+    //  获取 ParameterMapping 参数
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     if (parameterMappings != null) {
+      // 开始遍历 ParameterMapping 数组
       for (int i = 0; i < parameterMappings.size(); i++) {
+        //
         ParameterMapping parameterMapping = parameterMappings.get(i);
+        // 参数模式不等于 OUT
         if (parameterMapping.getMode() != ParameterMode.OUT) {
           Object value;
           String propertyName = parameterMapping.getProperty();
@@ -78,12 +85,15 @@ public class DefaultParameterHandler implements ParameterHandler {
             MetaObject metaObject = configuration.newMetaObject(parameterObject);
             value = metaObject.getValue(propertyName);
           }
+          // 获取 Typehandler
           TypeHandler typeHandler = parameterMapping.getTypeHandler();
+          // JDBCType
           JdbcType jdbcType = parameterMapping.getJdbcType();
           if (value == null && jdbcType == null) {
             jdbcType = configuration.getJdbcTypeForNull();
           }
           try {
+            // 设置 ？占位符参数
             typeHandler.setParameter(ps, i + 1, value, jdbcType);
           } catch (TypeException | SQLException e) {
             throw new TypeException("Could not set parameters for mapping: " + parameterMapping + ". Cause: " + e, e);

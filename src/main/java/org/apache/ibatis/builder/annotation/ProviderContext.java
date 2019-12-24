@@ -23,10 +23,14 @@ import java.lang.reflect.Method;
  * @author Kazuki Shimizu
  * @since 3.4.5
  */
+// Provider  上下文
 public final class ProviderContext {
 
+  // Mapper 接口
   private final Class<?> mapperType;
+  // Mapper 的方法
   private final Method mapperMethod;
+  // 数据库ID
   private final String databaseId;
 
   /**

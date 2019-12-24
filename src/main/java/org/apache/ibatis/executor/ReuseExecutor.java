@@ -36,6 +36,12 @@ import org.apache.ibatis.transaction.Transaction;
 /**
  * @author Clinton Begin
  */
+/**
+ * ReuseExecutor 可重用的 Executor 实现类
+ * 每次开始读或写操作，优先从缓存中获取对应的 Statement 对象。如果不存在，才进行创建。
+ * 执行完成后，不关闭该 Statement 对象。
+ * 其它的，和 SimpleExecutor 是一致的。
+ */
 public class ReuseExecutor extends BaseExecutor {
 
   private final Map<String, Statement> statementMap = new HashMap<>();
@@ -81,20 +87,28 @@ public class ReuseExecutor extends BaseExecutor {
     Statement stmt;
     BoundSql boundSql = handler.getBoundSql();
     String sql = boundSql.getSql();
+    // 判断缓存中是否存在Statement
     if (hasStatementFor(sql)) {
+      // 从缓存中获取 Statement
       stmt = getStatement(sql);
+      // 事务超时时间
       applyTransactionTimeout(stmt);
     } else {
+      // 获取Connection 对象
       Connection connection = getConnection(statementLog);
+      // 获取 Statement 对象
       stmt = handler.prepare(connection, transaction.getTimeout());
+      // 将 sql 和 Statement 对象 存入缓存中
       putStatement(sql, stmt);
     }
+    // 设置 SQL 上的参数，例如 PrepareStatement 对象上的占位符
     handler.parameterize(stmt);
     return stmt;
   }
 
   private boolean hasStatementFor(String sql) {
     try {
+      // 判断缓存中是否存在对应的 Statement 并且是没有关闭的
       return statementMap.keySet().contains(sql) && !statementMap.get(sql).getConnection().isClosed();
     } catch (SQLException e) {
       return false;

@@ -23,10 +23,13 @@ import java.sql.SQLException;
  *
  * @author Clinton Begin
  */
+// 参数处理器 接口 其默认的实现是 DefaultParameterHandler
 public interface ParameterHandler {
 
+  // 返回参数
   Object getParameterObject();
 
+  // 设置参数,这里就是为参数占位设置参数
   void setParameters(PreparedStatement ps)
       throws SQLException;
 

@@ -33,16 +33,24 @@ import org.apache.ibatis.session.Configuration;
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
+// 基于方法上的 @ProviderXXX 注解的 SqlSource 实现类
 public class ProviderSqlSource implements SqlSource {
 
   private final Configuration configuration;
+  // @ProviderXX  注解对应的类
   private final Class<?> providerType;
   private final LanguageDriver languageDriver;
+  // @ProviderXX  注解对应的Mapper方法
   private final Method mapperMethod;
+  // @ProviderXX  注解对应的方法
   private final Method providerMethod;
+  // @ProviderXX  注解对应的方法参数名字数组
   private final String[] providerMethodArgumentNames;
+  // @ProviderXX  注解对应的方法参数类型数组
   private final Class<?>[] providerMethodParameterTypes;
+  // 若 {@link #providerMethodParameterTypes} 参数有 ProviderContext 类型的，创建 ProviderContext 对象
   private final ProviderContext providerContext;
+  // {@link #providerMethodParameterTypes} 参数中，ProviderContext 类型的参数，在数组中的位置
   private final Integer providerContextIndex;
 
   /**
@@ -71,7 +79,9 @@ public class ProviderSqlSource implements SqlSource {
     String candidateProviderMethodName;
     Method candidateProviderMethod = null;
     try {
+      // 创建 SqlSourceBuilder 对象
       this.configuration = configuration;
+
       this.mapperMethod = mapperMethod;
       Lang lang = mapperMethod == null ? null : mapperMethod.getAnnotation(Lang.class);
       this.languageDriver = configuration.getLanguageDriver(lang == null ? null : lang.value());
@@ -128,7 +138,9 @@ public class ProviderSqlSource implements SqlSource {
 
   @Override
   public BoundSql getBoundSql(Object parameterObject) {
+    // 创建 SqlSource
     SqlSource sqlSource = createSqlSource(parameterObject);
+    // 返回 BoundSql
     return sqlSource.getBoundSql(parameterObject);
   }
 
@@ -136,6 +148,7 @@ public class ProviderSqlSource implements SqlSource {
     try {
       String sql;
       if (parameterObject instanceof Map) {
+        // 获取Sql
         int bindParameterCount = providerMethodParameterTypes.length - (providerContext == null ? 0 : 1);
         if (bindParameterCount == 1 &&
           (providerMethodParameterTypes[Integer.valueOf(0).equals(providerContextIndex) ? 1 : 0].isAssignableFrom(parameterObject.getClass()))) {
@@ -160,7 +173,9 @@ public class ProviderSqlSource implements SqlSource {
           + "' with specify parameter '" + (parameterObject == null ? null : parameterObject.getClass())
           + "' because SqlProvider method arguments for '" + mapperMethod + "' is an invalid combination.");
       }
+      // 获取参数
       Class<?> parameterType = parameterObject == null ? Object.class : parameterObject.getClass();
+      // 解析出 SqlSource
       return languageDriver.createSqlSource(configuration, sql, parameterType);
     } catch (BuilderException e) {
       throw e;

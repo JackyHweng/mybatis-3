@@ -36,9 +36,13 @@ import org.apache.ibatis.transaction.Transaction;
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
+// CachingExecutor 在 BaseExecutor 的基础上，实现二级缓存功能
+// mybatis-config.xml 中，配置如下开启二级缓存功能：<setting name="cacheEnabled" value="true"/>
 public class CachingExecutor implements Executor {
 
+  // 委托的 Executor 对象
   private final Executor delegate;
+  // TransactionalCacheManager 对象 用于处理不同 Session 共享二级缓存的问题
   private final TransactionalCacheManager tcm = new TransactionalCacheManager();
 
   public CachingExecutor(Executor delegate) {
@@ -78,13 +82,16 @@ public class CachingExecutor implements Executor {
 
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
+    // 获取 BoundSql
     BoundSql boundSql = ms.getBoundSql(parameterObject);
+    // 创建缓存Key
     CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 
   @Override
   public <E> Cursor<E> queryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds) throws SQLException {
+    // 如果需要清空缓存，则进行清空
     flushCacheIfRequired(ms);
     return delegate.queryCursor(ms, parameter, rowBounds);
   }
@@ -94,18 +101,25 @@ public class CachingExecutor implements Executor {
       throws SQLException {
     Cache cache = ms.getCache();
     if (cache != null) {
+      // 如果需要清空缓存，则进行清空
       flushCacheIfRequired(ms);
       if (ms.isUseCache() && resultHandler == null) {
+        // 暂时忽略，存储过程相关
         ensureNoOutParams(ms, boundSql);
+        // 从二级缓存中，获取结果
         @SuppressWarnings("unchecked")
         List<E> list = (List<E>) tcm.getObject(cache, key);
         if (list == null) {
+          // 如果不存在，则从数据库中查询
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+          // 将缓存添加到 二级缓存中
           tcm.putObject(cache, key, list); // issue #578 and #116
         }
+        // 如果存在，则直接返回结果
         return list;
       }
     }
+    // 缓存为空，直接查询数据库
     return delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 

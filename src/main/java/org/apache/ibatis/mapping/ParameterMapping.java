@@ -25,15 +25,22 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 /**
  * @author Clinton Begin
  */
+// 参数映射
 public class ParameterMapping {
 
   private Configuration configuration;
 
+  // 属性的名字
   private String property;
+  // 参数类型
   private ParameterMode mode;
+  // Java 类型
   private Class<?> javaType = Object.class;
+  // JDBC 类型
   private JdbcType jdbcType;
+  // 对于数值类型，还有一个小数保留位数的设置，来确定小数点后保留的位数
   private Integer numericScale;
+  // TypeHandler 对象 {@link Builder#resolveTypeHandler()}
   private TypeHandler<?> typeHandler;
   private String resultMapId;
   private String jdbcTypeName;

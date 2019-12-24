@@ -34,6 +34,7 @@ import org.apache.ibatis.transaction.Transaction;
 /**
  * @author Clinton Begin
  */
+// 简单的 Executor 实现类 , 实现了 BaseExecutor 中的所有抽象方法
 public class SimpleExecutor extends BaseExecutor {
 
   public SimpleExecutor(Configuration configuration, Transaction transaction) {
@@ -58,10 +59,14 @@ public class SimpleExecutor extends BaseExecutor {
     Statement stmt = null;
     try {
       Configuration configuration = ms.getConfiguration();
+      // 构建 StatementHandler
       StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
+      // 初始化 StatementHandler 对象
       stmt = prepareStatement(handler, ms.getStatementLog());
+      // StatementHandler 进行读操作
       return handler.query(stmt, resultHandler);
     } finally {
+      // 关闭 StatementHandler 对象
       closeStatement(stmt);
     }
   }
@@ -69,22 +74,30 @@ public class SimpleExecutor extends BaseExecutor {
   @Override
   protected <E> Cursor<E> doQueryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds, BoundSql boundSql) throws SQLException {
     Configuration configuration = ms.getConfiguration();
+    // 创建 StatementHandler 对象
     StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, null, boundSql);
+    // 初始化 StatementHandler 对象
     Statement stmt = prepareStatement(handler, ms.getStatementLog());
+    // 设置 Statement ，如果执行完成，则进行自动关闭
     Cursor<E> cursor = handler.queryCursor(stmt);
+    // 执行 StatementHandler ,进行读操作
     stmt.closeOnCompletion();
     return cursor;
   }
 
   @Override
   public List<BatchResult> doFlushStatements(boolean isRollback) {
+    // 不存在批量刷新
     return Collections.emptyList();
   }
 
   private Statement prepareStatement(StatementHandler handler, Log statementLog) throws SQLException {
     Statement stmt;
+    // 获取连接
     Connection connection = getConnection(statementLog);
+    // 创建 Statement 或者 PrepareStatement
     stmt = handler.prepare(connection, transaction.getTimeout());
+    //  设置 SQL 上的参数，例如 PrepareStatement 对象上的占位符
     handler.parameterize(stmt);
     return stmt;
   }

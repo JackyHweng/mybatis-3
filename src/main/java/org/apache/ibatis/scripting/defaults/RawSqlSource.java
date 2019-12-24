@@ -25,6 +25,8 @@ import org.apache.ibatis.scripting.xmltags.DynamicSqlSource;
 import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.session.Configuration;
 
+import java.util.HashMap;
+
 /**
  * Static SqlSource. It is faster than {@link DynamicSqlSource} because mappings are
  * calculated during startup.
@@ -32,11 +34,14 @@ import org.apache.ibatis.session.Configuration;
  * @since 3.2.0
  * @author Eduardo Macarron
  */
+// 原始的 SqlSource
 public class RawSqlSource implements SqlSource {
 
+  //  sqlSource
   private final SqlSource sqlSource;
 
   public RawSqlSource(Configuration configuration, SqlNode rootSqlNode, Class<?> parameterType) {
+    // 获取Sql
     this(configuration, getSql(configuration, rootSqlNode), parameterType);
   }
 
@@ -47,8 +52,11 @@ public class RawSqlSource implements SqlSource {
   }
 
   private static String getSql(Configuration configuration, SqlNode rootSqlNode) {
+    // 创建 DynamicContext 对象
     DynamicContext context = new DynamicContext(configuration, null);
+    // rootSqlNode 应用
     rootSqlNode.apply(context);
+    // 获取Sql
     return context.getSql();
   }
 

@@ -35,13 +35,18 @@ import org.apache.ibatis.logging.LogFactory;
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
+// 支持事务的 Cache 实现类，主要用于二级缓存中
 public class TransactionalCache implements Cache {
 
   private static final Log log = LogFactory.getLog(TransactionalCache.class);
 
+  // Cache 委托对象
   private final Cache delegate;
+  // 标志是否在提交后清除 delegate
   private boolean clearOnCommit;
+  // 待提交的 KV 映射
   private final Map<Object, Object> entriesToAddOnCommit;
+  // 查找不到的 KEY 集合
   private final Set<Object> entriesMissedInCache;
 
   public TransactionalCache(Cache delegate) {

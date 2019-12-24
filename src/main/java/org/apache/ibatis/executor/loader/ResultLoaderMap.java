@@ -279,6 +279,7 @@ public class ResultLoaderMap {
     }
   }
 
+  // 作为一个“空”的 Executor 对象
   private static final class ClosedExecutor extends BaseExecutor {
 
     public ClosedExecutor() {

@@ -33,12 +33,18 @@ import org.apache.ibatis.session.Configuration;
  *
  * @author Clinton Begin
  */
+// 一次可执行的 SQL 封装
 public class BoundSql {
 
+  // sql 语句
   private final String sql;
+  // ParameterMapping 数组
   private final List<ParameterMapping> parameterMappings;
+  // 参数对象
   private final Object parameterObject;
+  // 格外的参数
   private final Map<String, Object> additionalParameters;
+  //  {@link #additionalParameters} 的 MetaObject 对象
   private final MetaObject metaParameters;
 
   public BoundSql(Configuration configuration, String sql, List<ParameterMapping> parameterMappings, Object parameterObject) {
