@@ -87,15 +87,22 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return configuration;
   }
 
+  // 这里是 FromDataSource
   private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
     Transaction tx = null;
     try {
+      // 获取 环境对象
       final Environment environment = configuration.getEnvironment();
+      // 从环境中获取事务工厂
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
+      // 再从事务工厂获取 事务对象
       tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+      // 传入 事务对象 和 执行器类型 创建 Executor
       final Executor executor = configuration.newExecutor(tx, execType);
+      // 返回一个默认的sqlSession
       return new DefaultSqlSession(configuration, executor, autoCommit);
     } catch (Exception e) {
+      // 异常处理 关闭事务
       closeTransaction(tx); // may have fetched a connection so lets call close()
       throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);
     } finally {
@@ -103,16 +110,19 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     }
   }
 
+  // 从连接中打开一个 Session
   private SqlSession openSessionFromConnection(ExecutorType execType, Connection connection) {
     try {
       boolean autoCommit;
       try {
+        // 获取 是否自动提交属性
         autoCommit = connection.getAutoCommit();
       } catch (SQLException e) {
         // Failover to true, as most poor drivers
         // or databases won't support transactions
         autoCommit = true;
       }
+      // 这里和 fromDataSource 的逻辑一样
       final Environment environment = configuration.getEnvironment();
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
       final Transaction tx = transactionFactory.newTransaction(connection);
@@ -127,11 +137,14 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
 
   private TransactionFactory getTransactionFactoryFromEnvironment(Environment environment) {
     if (environment == null || environment.getTransactionFactory() == null) {
+      // 创建 ManagedTransactionFactory
       return new ManagedTransactionFactory();
     }
+    // 获取环境中的 TransactionFactory
     return environment.getTransactionFactory();
   }
 
+  // 关闭事务
   private void closeTransaction(Transaction tx) {
     if (tx != null) {
       try {

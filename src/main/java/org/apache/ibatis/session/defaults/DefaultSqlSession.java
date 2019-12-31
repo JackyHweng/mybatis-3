@@ -45,13 +45,17 @@ import org.apache.ibatis.session.SqlSession;
  *
  * @author Clinton Begin
  */
+// 默认的 SqlSession 实现类
 public class DefaultSqlSession implements SqlSession {
 
   private final Configuration configuration;
   private final Executor executor;
 
+  // 是否自动提交
   private final boolean autoCommit;
+  // 是否发生数据变更
   private boolean dirty;
+  // Cursor 数组
   private List<Cursor<?>> cursorList;
 
   public DefaultSqlSession(Configuration configuration, Executor executor, boolean autoCommit) {
@@ -73,6 +77,7 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public <T> T selectOne(String statement, Object parameter) {
     // Popular vote was to return null on 0 results and throw exception on too many.
+    //  最终会调用 selectList
     List<T> list = this.selectList(statement, parameter);
     if (list.size() == 1) {
       return list.get(0);
@@ -89,20 +94,28 @@ public class DefaultSqlSession implements SqlSession {
   }
 
   @Override
+  // 查询结果，并基于 Map 聚合结果
   public <K, V> Map<K, V> selectMap(String statement, Object parameter, String mapKey) {
     return this.selectMap(statement, parameter, mapKey, RowBounds.DEFAULT);
   }
 
   @Override
   public <K, V> Map<K, V> selectMap(String statement, Object parameter, String mapKey, RowBounds rowBounds) {
+    // 查询结果集
     final List<? extends V> list = selectList(statement, parameter, rowBounds);
+    // 创建 DefaultMapResultHandler
     final DefaultMapResultHandler<K, V> mapResultHandler = new DefaultMapResultHandler<>(mapKey,
             configuration.getObjectFactory(), configuration.getObjectWrapperFactory(), configuration.getReflectorFactory());
+    // 创建 DefaultResultContext 对象
     final DefaultResultContext<V> context = new DefaultResultContext<>();
+    // 遍历查询结果
     for (V o : list) {
+      // 设置 DefaultResultContext 中
       context.nextResultObject(o);
+      // 使用 DefaultMapResultHandler 处理结果的当前元素
       mapResultHandler.handleResult(context);
     }
+    // 返回
     return mapResultHandler.getMappedResults();
   }
 
@@ -165,7 +178,9 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public void select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
     try {
+      // 获得 MappedStatement 对象
       MappedStatement ms = configuration.getMappedStatement(statement);
+      // 执行查询
       executor.query(ms, wrapCollection(parameter), rowBounds, handler);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
@@ -192,8 +207,11 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public int update(String statement, Object parameter) {
     try {
+      // dirty 标志位 true ，也就说执行过写操作
       dirty = true;
+      // MappedStatement
       MappedStatement ms = configuration.getMappedStatement(statement);
+      // 执行 更新操作
       return executor.update(ms, wrapCollection(parameter));
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error updating database.  Cause: " + e, e);
@@ -220,7 +238,9 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public void commit(boolean force) {
     try {
+      // 提交，参数 为是否强制 提交
       executor.commit(isCommitOrRollbackRequired(force));
+      // 重置 dirty 字段
       dirty = false;
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error committing transaction.  Cause: " + e, e);
@@ -237,7 +257,9 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public void rollback(boolean force) {
     try {
+      // 执行回滚
       executor.rollback(isCommitOrRollbackRequired(force));
+      // 重置 dirty 字段
       dirty = false;
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error rolling back transaction.  Cause: " + e, e);
@@ -260,6 +282,7 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public void close() {
     try {
+      // 关闭
       executor.close(isCommitOrRollbackRequired(false));
       closeCursors();
       dirty = false;
@@ -268,6 +291,7 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+  // 关闭所有游标
   private void closeCursors() {
     if (cursorList != null && !cursorList.isEmpty()) {
       for (Cursor<?> cursor : cursorList) {
@@ -313,10 +337,13 @@ public class DefaultSqlSession implements SqlSession {
   }
 
   private boolean isCommitOrRollbackRequired(boolean force) {
+    // 开启自动提交并且已经修改过数据
+    // 强制提交
     return (!autoCommit && dirty) || force;
   }
 
   private Object wrapCollection(final Object object) {
+    // 对象如果是集合Collection
     if (object instanceof Collection) {
       StrictMap<Object> map = new StrictMap<>();
       map.put("collection", object);
@@ -325,6 +352,7 @@ public class DefaultSqlSession implements SqlSession {
       }
       return map;
     } else if (object != null && object.getClass().isArray()) {
+      // 对象如果是 Array 转成 Collection 并返回
       StrictMap<Object> map = new StrictMap<>();
       map.put("array", object);
       return map;

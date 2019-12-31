@@ -47,7 +47,7 @@ import org.apache.ibatis.reflection.property.PropertyNamer;
  *
  * @author Clinton Begin
  */
-// 反射器
+// 反射器 每个反射对应一个类，缓存类的元信息
 public class Reflector {
 
   // 类
@@ -62,7 +62,7 @@ public class Reflector {
   private final Map<String, Invoker> getMethods = new HashMap<>();
   //  属性对应的 setting 方法的方法参数类型的映射
   private final Map<String, Class<?>> setTypes = new HashMap<>();
-  // //  属性对应的 getting 方法的方法参数类型的映射
+  //  属性对应的 getting 方法的方法参数类型的映射
   private final Map<String, Class<?>> getTypes = new HashMap<>();
   // 默认的构造方法
   private Constructor<?> defaultConstructor;

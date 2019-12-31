@@ -39,6 +39,7 @@ import org.apache.ibatis.logging.LogFactory;
  *
  * @author Ben Gunter
  */
+// 默认的VFS
 public class DefaultVFS extends VFS {
   private static final Log log = LogFactory.getLog(DefaultVFS.class);
 
@@ -46,6 +47,7 @@ public class DefaultVFS extends VFS {
   private static final byte[] JAR_MAGIC = { 'P', 'K', 3, 4 };
 
   @Override
+  // 这里实现了抽象的isValid方法
   public boolean isValid() {
     return true;
   }
@@ -69,6 +71,7 @@ public class DefaultVFS extends VFS {
       else {
         List<String> children = new ArrayList<>();
         try {
+          // 判断是不是jar 路径
           if (isJar(url)) {
             // Some versions of JBoss VFS might give a JAR stream even if the resource
             // referenced by the URL isn't actually a JAR

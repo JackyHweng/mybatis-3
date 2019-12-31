@@ -115,6 +115,7 @@ public class ErrorContext {
     if (resource != null) {
       description.append(LINE_SEPARATOR);
       description.append("### The error may exist in ");
+
       description.append(resource);
     }
 

@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class PluginTest {
 
   @Test
-  void mapPluginShouldInterceptGet() {
+  void CapPluginShouldrnterceptGet() {
     Map map = new HashMap();
     map = (Map) new AlwaysMapPlugin().plugin(map);
     assertEquals("Always", map.get("Anything"));

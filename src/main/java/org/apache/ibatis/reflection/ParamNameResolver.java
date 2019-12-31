@@ -107,6 +107,7 @@ public class ParamNameResolver {
    * ...).
    * </p>
    */
+  // 转换参数逻辑
   public Object getNamedParams(Object[] args) {
     final int paramCount = names.size();
     if (args == null || paramCount == 0) {

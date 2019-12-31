@@ -766,9 +766,11 @@ public class Configuration {
   }
 
   public MappedStatement getMappedStatement(String id, boolean validateIncompleteStatements) {
+    // 是否校验所有的 MappedStatement 都已经加载
     if (validateIncompleteStatements) {
       buildAllStatements();
     }
+    // 获取 MappedStatement 对象
     return mappedStatements.get(id);
   }
 
@@ -823,12 +825,12 @@ public class Configuration {
   protected void buildAllStatements() {
     parsePendingResultMaps();
     if (!incompleteCacheRefs.isEmpty()) {
-      synchronized (incompleteCacheRefs) {
+      synchronized (incompleteCacheRefs) {  // 确保 incompleteCacheRefs 加载完
         incompleteCacheRefs.removeIf(x -> x.resolveCacheRef() != null);
       }
     }
     if (!incompleteStatements.isEmpty()) {
-      synchronized (incompleteStatements) {
+      synchronized (incompleteStatements) { // 确保 incompleteStatements 加载完
         incompleteStatements.removeIf(x -> {
           x.parseStatementNode();
           return true;
@@ -836,7 +838,7 @@ public class Configuration {
       }
     }
     if (!incompleteMethods.isEmpty()) {
-      synchronized (incompleteMethods) {
+      synchronized (incompleteMethods) { // 确保 incompleteMethods 加载完
         incompleteMethods.removeIf(x -> {
           x.resolve();
           return true;

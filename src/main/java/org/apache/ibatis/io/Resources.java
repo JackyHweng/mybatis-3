@@ -30,8 +30,10 @@ import java.util.Properties;
  *
  * @author Clinton Begin
  */
+// Resource 的操作类
 public class Resources {
 
+  // ClassLoaderWrapper
   private static ClassLoaderWrapper classLoaderWrapper = new ClassLoaderWrapper();
 
   /**

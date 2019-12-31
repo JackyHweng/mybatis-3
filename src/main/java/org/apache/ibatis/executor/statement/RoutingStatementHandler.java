@@ -32,12 +32,15 @@ import org.apache.ibatis.session.RowBounds;
 /**
  * @author Clinton Begin
  */
+// 路由的 StatementHandler 对象，根据 Statement 类型，转发到对应的 StatementHandler 实现类中
 public class RoutingStatementHandler implements StatementHandler {
 
   private final StatementHandler delegate;
 
   public RoutingStatementHandler(Executor executor, MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
 
+    // 经理的装饰器模式，但是这里可以用工厂模式
+    // 根据不同的类型，创建对应的 StatementHandler 实现类
     switch (ms.getStatementType()) {
       case STATEMENT:
         delegate = new SimpleStatementHandler(executor, ms, parameter, rowBounds, resultHandler, boundSql);
@@ -54,6 +57,7 @@ public class RoutingStatementHandler implements StatementHandler {
 
   }
 
+  // 下面的所有方法都是委托给装饰后的 StatementHandler
   @Override
   public Statement prepare(Connection connection, Integer transactionTimeout) throws SQLException {
     return delegate.prepare(connection, transactionTimeout);

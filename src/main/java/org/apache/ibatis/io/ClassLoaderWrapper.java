@@ -23,9 +23,12 @@ import java.net.URL;
  *
  * @author Clinton Begin
  */
+// ClassLoader 包装器。可使用多个 ClassLoader 加载对应的资源，直到有一成功后返回资源
 public class ClassLoaderWrapper {
 
+  // 默认的 ClassLoader 对象
   ClassLoader defaultClassLoader;
+  // 系统的 ClassLoader 对象
   ClassLoader systemClassLoader;
 
   ClassLoaderWrapper() {
@@ -42,6 +45,7 @@ public class ClassLoaderWrapper {
    * @param resource - the resource to locate
    * @return the resource or null
    */
+  // 获取指定资源的URL
   public URL getResourceAsURL(String resource) {
     return getResourceAsURL(resource, getClassLoaders(null));
   }
@@ -109,6 +113,7 @@ public class ClassLoaderWrapper {
    * @return the resource or null
    */
   InputStream getResourceAsStream(String resource, ClassLoader[] classLoader) {
+    // 遍历 ClassLoader
     for (ClassLoader cl : classLoader) {
       if (null != cl) {
 
@@ -183,6 +188,7 @@ public class ClassLoaderWrapper {
 
         try {
 
+          // Jdk
           Class<?> c = Class.forName(name, true, cl);
 
           if (null != c) {
@@ -201,6 +207,7 @@ public class ClassLoaderWrapper {
 
   }
 
+  // 获取 ClassLoader 数组
   ClassLoader[] getClassLoaders(ClassLoader classLoader) {
     return new ClassLoader[]{
         classLoader,

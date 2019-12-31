@@ -45,6 +45,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+// 查询语句提供器
 public @interface SelectProvider {
 
   /**
@@ -54,6 +55,7 @@ public @interface SelectProvider {
    * @since 3.5.2
    * @see #type()
    */
+  // 返回提供的类
   Class<?> value() default void.class;
 
   /**
@@ -65,6 +67,7 @@ public @interface SelectProvider {
    * @return a type that implements an SQL provider method
    * @see #value()
    */
+  // 返回提供的方法
   Class<?> type() default void.class;
 
   /**

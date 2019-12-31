@@ -36,12 +36,12 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target(ElementType.METHOD) // 用在方法上
 public @interface Select {
   /**
    * Returns an SQL for retrieving record(s).
    *
-   * @return an SQL for retrieving record(s)
+   * @return 查询的结果
    */
   String[] value();
 }

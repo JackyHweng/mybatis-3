@@ -32,16 +32,20 @@ import org.apache.ibatis.logging.LogFactory;
  *
  * @author Ben Gunter
  */
+//虚拟文件系统 抽象类
 public abstract class VFS {
   private static final Log log = LogFactory.getLog(VFS.class);
 
   /** The built-in implementations. */
+  // 内置 VFS 实现类的数组 , 目前只有 JBOSS 和 DefaultVFS 2个实现类
   public static final Class<?>[] IMPLEMENTATIONS = { JBoss6VFS.class, DefaultVFS.class };
 
   /** The list to which implementations are added by {@link #addImplClass(Class)}. */
+  // 自定义的 VFS 实现的数组
   public static final List<Class<? extends VFS>> USER_IMPLEMENTATIONS = new ArrayList<>();
 
   /** Singleton instance holder. */
+  // 单例实例
   private static class VFSHolder {
     static final VFS INSTANCE = createVFS();
 
@@ -82,6 +86,7 @@ public abstract class VFS {
    * Get the singleton {@link VFS} instance. If no {@link VFS} implementation can be found for the
    * current environment, then this method returns null.
    */
+  // 获取 VFS 对象
   public static VFS getInstance() {
     return VFSHolder.INSTANCE;
   }
@@ -99,6 +104,7 @@ public abstract class VFS {
   }
 
   /** Get a class by name. If the class is not found then return null. */
+  // 根据类名反射获取类
   protected static Class<?> getClass(String className) {
     try {
       return Thread.currentThread().getContextClassLoader().loadClass(className);
@@ -118,6 +124,7 @@ public abstract class VFS {
    * @param methodName The name of the method.
    * @param parameterTypes The types of the parameters accepted by the method.
    */
+  // 反射获取 方法
   protected static Method getMethod(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
     if (clazz == null) {
       return null;
@@ -168,10 +175,12 @@ public abstract class VFS {
    * @throws IOException If I/O errors occur
    */
   protected static List<URL> getResources(String path) throws IOException {
+    // 加载所有资源
     return Collections.list(Thread.currentThread().getContextClassLoader().getResources(path));
   }
 
   /** Return true if the {@link VFS} implementation is valid for the current environment. */
+  // 判断 VFS 是否合法
   public abstract boolean isValid();
 
   /**
@@ -194,6 +203,7 @@ public abstract class VFS {
    * @return A list containing the names of the child resources.
    * @throws IOException If I/O errors occur
    */
+  // 列举路径下的所有资源
   public List<String> list(String path) throws IOException {
     List<String> names = new ArrayList<>();
     for (URL url : getResources(path)) {

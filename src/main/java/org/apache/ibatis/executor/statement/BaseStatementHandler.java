@@ -36,6 +36,7 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 /**
  * @author Clinton Begin
  */
+// StatementHandler 基类，提供骨架方法，从而使子类只要实现指定的几个抽象方法即可
 public abstract class BaseStatementHandler implements StatementHandler {
 
   protected final Configuration configuration;
@@ -56,17 +57,24 @@ public abstract class BaseStatementHandler implements StatementHandler {
     this.mappedStatement = mappedStatement;
     this.rowBounds = rowBounds;
 
+    // 获取 typeHandlerRegistry
     this.typeHandlerRegistry = configuration.getTypeHandlerRegistry();
+    // 获取 objectFactory
     this.objectFactory = configuration.getObjectFactory();
 
+    // 如果 boundSql 为空，一般是写类操作，例如：insert、update、delete ，则先获得自增主键，然后再创建 BoundSql 对象
     if (boundSql == null) { // issue #435, get the key before calculating the statement
+      // 获得自增主键
       generateKeys(parameterObject);
+      // 创建 BoundSql 对象
       boundSql = mappedStatement.getBoundSql(parameterObject);
     }
 
     this.boundSql = boundSql;
 
+    //  创建 parameterHandler
     this.parameterHandler = configuration.newParameterHandler(mappedStatement, parameterObject, boundSql);
+    // 创建 resultSetHandler
     this.resultSetHandler = configuration.newResultSetHandler(executor, mappedStatement, rowBounds, parameterHandler, resultHandler, boundSql);
   }
 
@@ -136,8 +144,10 @@ public abstract class BaseStatementHandler implements StatementHandler {
   }
 
   protected void generateKeys(Object parameter) {
+    //  获得 KeyGenerator 对象
     KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
     ErrorContext.instance().store();
+    // 前置处理，创建自增编号到 parameter 中
     keyGenerator.processBefore(executor, mappedStatement, null, parameter);
     ErrorContext.instance().recall();
   }

@@ -29,7 +29,9 @@ import org.apache.ibatis.session.ResultHandler;
  */
 public class DefaultMapResultHandler<K, V> implements ResultHandler<V> {
 
+  // 结果聚合
   private final Map<K, V> mappedResults;
+  // {@link #mappedResults} 的 KEY 属性名
   private final String mapKey;
   private final ObjectFactory objectFactory;
   private final ObjectWrapperFactory objectWrapperFactory;
@@ -40,16 +42,20 @@ public class DefaultMapResultHandler<K, V> implements ResultHandler<V> {
     this.objectFactory = objectFactory;
     this.objectWrapperFactory = objectWrapperFactory;
     this.reflectorFactory = reflectorFactory;
+    // 创建 Map
     this.mappedResults = objectFactory.create(Map.class);
     this.mapKey = mapKey;
   }
 
+  // 处理结果逻辑
   @Override
   public void handleResult(ResultContext<? extends V> context) {
+    // 获取key 的value
     final V value = context.getResultObject();
     final MetaObject mo = MetaObject.forObject(value, objectFactory, objectWrapperFactory, reflectorFactory);
     // TODO is that assignment always true?
     final K key = (K) mo.getValue(mapKey);
+    // 保存在 mappedResults
     mappedResults.put(key, value);
   }
 
